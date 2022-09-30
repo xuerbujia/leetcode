@@ -1,51 +1,31 @@
 package main
 
-import "fmt"
+import (
+	"fmt"
+	"sort"
+)
 
 func insert(intervals [][]int, newInterval []int) [][]int {
-	if len(intervals) == 0 {
-		return [][]int{newInterval}
-	}
-	var ans [][]int
-	var flag = false
-	var left, right = 0, intervals[0][1]
-lab:
-	for i := 0; i < len(intervals); i++ {
-		if newInterval[0] >= left && newInterval[0] <= right {
-			flag = true
-			for j := i + 1; j <= len(intervals); j++ {
-				if j == len(intervals) {
-					ans = append(ans, []int{min(intervals[i][0], newInterval[0]), max(intervals[j-1][1], newInterval[1])})
-					break lab
-				}
-				if intervals[j][0] > newInterval[1] {
-					ans = append(ans, []int{intervals[i][0], newInterval[1]})
-					ans = append(ans, intervals[j:]...)
-					break lab
-				}
-				if intervals[j][0] == newInterval[1] {
-					ans = append(ans, []int{intervals[i][0], intervals[j][1]})
-					ans = append(ans, intervals[j+1:]...)
-					break lab
-				}
-			}
-		}
-		ans = append(ans, intervals[i])
-		if i < len(intervals)-1 {
-			left = intervals[i+1][0]
-			right = intervals[i+1][1]
-		}
-	}
-	if !flag {
-		if newInterval[1] < intervals[0][0] {
-
-			ans = append([][]int{newInterval}, ans...)
+	intervals = append(intervals, newInterval)
+	sort.Slice(intervals, func(i, j int) bool {
+		if intervals[i][0] != intervals[j][0] {
+			return intervals[i][0] < intervals[j][0]
 		} else {
-			ans = append(ans, newInterval)
+			return intervals[i][1] < intervals[j][1]
 		}
+	})
+	var stack [][]int
+	for _, v := range intervals {
+		if len(stack) > 0 && v[0] < stack[len(stack)-1][1] {
+			top := stack[len(stack)-1]
+			stack = stack[:len(stack)-1]
+			v = []int{top[0], max(top[1], v[1])}
+		}
+		fmt.Println(v)
+		stack = append(stack, v)
 	}
-	//	fmt.Println(ans)
-	return ans
+
+	return stack
 }
 func max(i, j int) int {
 	if i > j {
@@ -62,5 +42,5 @@ func min(i, j int) int {
 	}
 }
 func main() {
-	fmt.Println(insert([][]int{{1, 5}}, []int{0, 0}))
+	insert([][]int{{1, 3}, {6, 9}}, []int{2, 5})
 }
